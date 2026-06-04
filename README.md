@@ -1,2 +1,2 @@
-# SPOR_mainsite
-Main landing page for sporsystems.ca
+# Main Website
+Built in HTML and Javascript, utilizing frameworks such as React.
