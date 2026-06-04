@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPOR Systems | Automation & Infrastructure</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              light: '#60a5fa',
+              DEFAULT: '#2563eb',
+              dark: '#1e40af',
+              accent: '#3b82f6'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* Custom scrollbar for JSON blocks */
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-light selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const services = [
+      {
+        title: "Financial Statement Parsing",
+        problem: "Analysts manually extract financial data.",
+        capabilities: ["Parse balance sheets", "Parse income statements", "Calculate KPIs", "Detect anomalies"],
+        customers: ["Investors", "Banks", "Accounting firms"],
+        icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      },
+      {
+        title: "Knowledge Base & SOP Parsing",
+        problem: "Company documentation is scattered and hard to search.",
+        capabilities: ["Parse PDFs", "Extract procedures", "Build searchable knowledge graphs", "Create automated assistants"],
+        customers: ["Mid-sized & Enterprise"],
+        icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+      },
+      {
+        title: "Real Estate Document Parsing",
+        problem: "Transactions involve a massive volume of dense documents.",
+        capabilities: ["Parse leases", "Purchase agreements", "Inspection reports", "Property details"],
+        customers: ["Brokerages", "Property managers", "Mortgage companies"],
+        icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+      },
+      {
+        title: "Invoice & Receipt Parsing",
+        problem: "Companies manually process invoices, causing accounting delays.",
+        capabilities: ["Extract vendor name", "Invoice number & amount", "Tax & due date", "Line items"],
+        customers: ["Accounting firms", "SMBs", "ERP vendors"],
+        icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      },
+      {
+        title: "Resume Parsing",
+        problem: "Recruiters spend countless hours manually reviewing resumes.",
+        capabilities: ["Extract skills & experience", "Education history", "Certifications", "Contact info"],
+        customers: ["Recruiting agencies", "HR software", "Job boards"],
+        icon: "M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+      },
+      {
+        title: "Contract Analysis",
+        problem: "Legal teams review thousands of contracts manually.",
+        capabilities: ["Extract clauses", "Identify risks", "Find renewal dates", "Flag missing terms"],
+        customers: ["Law firms", "Procurement teams", "Enterprises"],
+        icon: "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+      },
+      {
+        title: "Email-to-Action Parsing",
+        problem: "Important requests are easily buried in email inboxes.",
+        capabilities: ["Detect intent", "Extract tasks", "Assign priorities", "Generate tickets"],
+        customers: ["Internal teams", "Project Managers", "Executive Assistants"],
+        example: `Input: "Update pricing page before Friday."\n\nOutput:\n{\n  "task": "Update pricing page",\n  "deadline": "Friday",\n  "priority": "medium"\n}`,
+        icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+      },
+      {
+        title: "Customer Support Ticket Parsing",
+        problem: "Support teams spend valuable time categorizing tickets.",
+        capabilities: ["Classify issue", "Detect urgency", "Suggest solutions", "Route to team"],
+        customers: ["SaaS companies", "E-commerce", "Call centers"],
+        icon: "M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+      },
+      {
+        title: "Medical Document Parsing",
+        problem: "Medical records are unstructured and difficult to process.",
+        capabilities: ["Extract diagnoses", "Medications", "Procedures", "Insurance info"],
+        customers: ["Clinics", "Healthcare software", "Insurance companies"],
+        icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+      },
+      {
+        title: "Construction & Engineering Plans",
+        problem: "Reviewing large sets of blueprints leads to manual errors.",
+        capabilities: ["Extract measurements", "Identify materials", "Calculate quantities", "Check compliance"],
+        customers: ["Contractors", "Architects", "Estimators"],
+        icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+      }
+    ];
+
+    const App = () => {
+      const [scrolled, setScrolled] = useState(false);
+
+      useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+
+      return (
+        <div className="min-h-screen flex flex-col font-sans">
+          
+          <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 py-3' : 'bg-transparent py-5'}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                  <div className="w-10 h-10 bg-gradient-to-br from-brand to-brand-dark text-white rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-brand/30">
+                    S
+                  </div>
+                  <span className={`font-extrabold text-2xl tracking-tight transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>SPOR Systems</span>
+                </div>
+                <div className="hidden md:flex items-center space-x-8">
+                  <a href="#mission" className={`text-sm font-semibold transition-colors hover:text-brand ${scrolled ? 'text-slate-600' : 'text-slate-200'}`}>Mission</a>
+                  <a href="#services" className={`text-sm font-semibold transition-colors hover:text-brand ${scrolled ? 'text-slate-600' : 'text-slate-200'}`}>Capabilities</a>
+                  <a href="#contact" className="bg-brand hover:bg-brand-light text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-brand/20 hover:shadow-brand/40 hover:-translate-y-0.5">
+                    Partner With Us
+                  </a>
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <header id="mission" className="relative bg-slate-900 overflow-hidden pt-32 pb-24 lg:pt-48 lg:pb-32">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#1e3a8a] to-slate-900 opacity-90"></div>
+            <div className="absolute top-0 -left-1/4 w-1/2 h-1/2 bg-brand-light rounded-full mix-blend-multiply filter blur-[120px] opacity-20"></div>
+            <div className="absolute bottom-0 -right-1/4 w-1/2 h-1/2 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-20"></div>
+            
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+              <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-brand-light text-sm font-semibold tracking-wider mb-6 border border-white/20 backdrop-blur-sm">
+                NEXT-GEN MICROSERVICES & INFRASTRUCTURE
+              </span>
+              <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
+                Automate The <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-indigo-400">Unstructured.</span>
+              </h1>
+              <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-10 font-light leading-relaxed">
+                <strong className="text-white font-medium">Our Mission:</strong> We empower modern enterprises to eliminate manual data entry. By leveraging advanced system architecture, API automation, and microservices, SPOR Systems transforms scattered documents into clean, actionable intelligence.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#services" className="bg-white text-slate-900 hover:bg-slate-100 font-bold py-4 px-8 rounded-xl text-lg transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-1">
+                  Explore Solutions
+                </a>
+                <a href="#contact" className="bg-transparent border border-slate-600 text-white hover:border-slate-400 hover:bg-slate-800 font-semibold py-4 px-8 rounded-xl text-lg transition-all">
+                  Request a Demo
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <main id="services" className="flex-grow py-24 bg-slate-50 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="text-center mb-20">
+                <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Purpose-Built Parsing Systems</h2>
+                <div className="h-1 w-20 bg-brand mx-auto rounded-full mb-6"></div>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                  We deploy targeted automation pipelines to solve specific domain problems, dramatically reducing overhead and increasing accuracy for your organization.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {services.map((service, idx) => (
+                  <div key={idx} className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-slate-100 p-8 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full relative overflow-hidden">
+                    
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="p-3 bg-slate-50 text-slate-400 group-hover:bg-brand/10 group-hover:text-brand rounded-xl transition-colors duration-300">
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={service.icon}></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 leading-tight pt-1">{service.title}</h3>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> The Problem
+                      </span>
+                      <p className="text-slate-600 text-sm leading-relaxed">{service.problem}</p>
+                    </div>
+
+                    <div className="mb-6 flex-grow">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand"></span> System Capabilities
+                      </span>
+                      <ul className="space-y-2">
+                        {service.capabilities.map((item, i) => (
+                          <li key={i} className="flex items-start text-sm text-slate-700">
+                            <svg className="w-4 h-4 text-brand mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {service.example && (
+                      <div className="mb-6 bg-[#0d1117] rounded-xl border border-slate-800 overflow-hidden shadow-inner">
+                        <div className="bg-slate-800/50 px-4 py-2 border-b border-slate-800 flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                          <span className="text-[10px] text-slate-400 ml-2 font-mono uppercase tracking-wider">JSON Output</span>
+                        </div>
+                        <div className="p-4 text-xs text-emerald-400 font-mono whitespace-pre custom-scrollbar overflow-x-auto">
+                          {service.example}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-auto pt-6 border-t border-slate-100">
+                      <div className="flex flex-wrap gap-2">
+                        {service.customers.map((cust, i) => (
+                          <span key={i} className="bg-slate-100 text-slate-600 font-medium text-xs px-2.5 py-1 rounded-md border border-slate-200">
+                            {cust}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {service.note && (
+                      <div className="mt-4 text-xs font-medium text-amber-700 bg-amber-50/50 p-3 rounded-lg border border-amber-200/50 flex items-start gap-2">
+                        <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {service.note}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+
+          <footer id="contact" className="bg-slate-900 border-t border-slate-800 relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-brand/10 filter blur-[100px] pointer-events-none"></div>
+            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">Ready to upgrade your infrastructure?</h2>
+                  <p className="text-slate-400 text-lg mb-8">
+                    Let's discuss how SPOR Systems can integrate customized parsing microservices into your existing workflow, reducing costs and accelerating your data availability.
+                  </p>
+                  <div className="flex items-center gap-4 text-slate-300 mb-4">
+                    <svg className="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span className="font-medium">partnerships@sporsystems.ca</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-slate-300">
+                    <svg className="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span className="font-medium">Global via Secure Cloud Infrastructure</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 backdrop-blur-sm shadow-xl">
+                  <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">First Name</label>
+                        <input type="text" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors" placeholder="John" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Last Name</label>
+                        <input type="text" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors" placeholder="Doe" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Work Email</label>
+                      <input type="email" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors" placeholder="john@company.com" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">How can we help?</label>
+                      <textarea rows="3" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors" placeholder="Tell us about your data bottlenecks..."></textarea>
+                    </div>
+                    <button className="w-full bg-brand hover:bg-brand-light text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-brand/20 mt-2">
+                      Send Message
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+              
+              <div className="mt-20 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-slate-700 text-white rounded flex items-center justify-center font-bold text-xs">S</div>
+                  <span className="font-semibold text-slate-400">SPOR Systems</span>
+                </div>
+                <p>&copy; 2026 SPOR Systems. All rights reserved.</p>
+                <div className="flex gap-4">
+                  <a href="#" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+                  <a href="#" className="hover:text-slate-300 transition-colors">Terms of Service</a>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
